@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>flashkarten</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      text-align: center;
+    }
+
+    .hero.hidden {
+      opacity: 0;
+      transform: translateY(-50px);
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #aaa;
+    }
+
+    .overview {
+      padding: 40px 20px;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .overview.visible {
+      opacity: 1;
+    }
+
+    form {
+      margin-bottom: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    label {
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-size: 1rem;
+    }
+
+    select, button {
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 4px;
+      border: none;
+    }
+
+    select {
+      background-color: #1e1e1e;
+      color: white;
+    }
+
+    button {
+      background-color: #00ffff;
+      color: black;
+      cursor: pointer;
+      margin-top: 25px;
+    }
+
+    button:hover {
+      background-color: #00cccc;
+    }
+
+    .sets-list {
+      border-top: 1px solid #333;
+      padding-top: 20px;
+    }
+
+    .sets-list h2 {
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+    }
+
+    .set-item {
+      padding: 10px;
+      background-color: #1e1e1e;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .set-item:hover {
+      background-color: #333;
+    }
+
+    .card-list {
+      margin-top: 10px;
+      display: none;
+      padding-left: 10px;
+      border-left: 2px solid #00cccc;
+    }
+
+    .card {
+      padding: 5px 0;
+      border-bottom: 1px dashed #444;
+    }
+
+    .card .question {
+      font-weight: bold;
+      color: #00ffff;
+    }
+
+    .card .answer {
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero" id="hero">
+    <h1>flashkarten by martin</h1>
+    <p>scroll</p>
+  </div>
+
+  <div class="overview" id="overview">
+    <form action="{{ url_for('card') }}" method="get">
+      <label for="set">set:</label>
+      <select name="set" id="set" required>
+        <option value="" disabled selected>---</option>
+        {% for filename in sets %}
+          <option value="{{ filename }}">{{ filename }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="mode">mode:</label>
+      <select name="mode" id="mode" required>
+        <option value="random">random</option>
+        <option value="sequential">sequential</option>
+      </select>
+
+      <button type="submit">Start</button>
+    </form>
+
+    <div class="sets-list">
+      <h2>Dostupné sady:</h2>
+      {% for filename, cards in set_cards.items() %}
+        <div class="set-item" onclick="toggleCards('{{ filename }}')">
+          {{ filename }}
+        </div>
+        <div class="card-list" id="cards-{{ filename }}">
+          {% for card in cards %}
+            <div class="card">
+              <div class="question">{{ card[0]|safe }}</div>
+              <div class="answer">{{ card[1]|safe }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('scroll', () => {
+      const hero = document.getElementById('hero');
+      const overview = document.getElementById('overview');
+      const triggerPoint = window.innerHeight * 0.25;
+
+      if (window.scrollY > triggerPoint) {
+        hero.classList.add('hidden');
+        overview.classList.add('visible');
+      } else {
+        hero.classList.remove('hidden');
+        overview.classList.remove('visible');
+      }
+    });
+
+    function toggleCards(setName) {
+      const el = document.getElementById('cards-' + setName);
+      el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    }
+  </script>
+</body>
+</html>
